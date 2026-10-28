@@ -9,9 +9,9 @@ Machine: MacBook with Apple M2, 8 GB memory, macOS, Python 3.10.13, PyTorch
 
 ## Data
 
-Kaggle `emmarex/plantdisease`: 15 classes, 20,637 images (Pepper 2 classes,
+Kaggle `emmarex/plantdisease`: 15 classes, 20,638 images (Pepper 2 classes,
 Potato 3, Tomato 10). Split 70/15/15 by class with seed 42:
-14,447 train, 3,097 validation, 3,094 test. The largest class has 3,209
+14,447 train, 3,097 validation, 3,094 test. The largest class has 3,208
 images and the smallest 152 (about 21 times). Per-class counts are in
 `02_dataset.md`.
 
@@ -135,7 +135,7 @@ Those earlier numbers are not used anywhere else.
    nothing. `compute_gradcam` now sets `requires_grad=True` on the input
    tensor. Anyone explaining a frozen transfer-learning model will meet this.
 4. **Dataset size.** The docs said 38 classes and 54,000 images. This Kaggle
-   copy has 15 classes and 20,637 images. Docs fixed.
+   copy has 15 classes and 20,638 images. Docs fixed.
 5. **Map definitions.** The first version of the cached maps used the absolute
    value for SHAP, kept the sign for LIME, and Grad-CAM only shows evidence for
    the class. The three did not mean the same thing. SHAP and LIME now keep

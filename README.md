@@ -68,7 +68,7 @@ git. Train the models and build the maps locally.
 
 ## Notes
 
-- The Kaggle copy of PlantVillage used here has 15 classes and 20,637 images
+- The Kaggle copy of PlantVillage used here has 15 classes and 20,638 images
   (Pepper, Potato, Tomato). See `docs/02_dataset.md`.
 - On macOS, `num_workers` is 0 in `src/config.py` because PyTorch data loader
   workers hung on the test machine.

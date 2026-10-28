@@ -8,12 +8,12 @@
 Potato, and Tomato** — not the full 38-class/54,000-image academic release
 some PlantVillage papers describe. Actual numbers from this mirror:
 
-- **20,637 RGB images, 15 classes** (Pepper × 2, Potato × 3, Tomato × 10 —
+- **20,638 RGB images, 15 classes** (Pepper × 2, Potato × 3, Tomato × 10 —
   healthy + disease states per crop). E.g. `Tomato_Late_blight`,
   `Potato___healthy`. Note the inconsistent `_`/`___` separator across
   classes in this particular mirror — cosmetic, doesn't affect
   `ImageFolder` loading.
-- Class imbalance ratio ≈ **21x** (3,209 images for
+- Class imbalance ratio ≈ **21x** (3,208 images for
   `Tomato__Tomato_YellowLeaf__Curl_Virus` vs. 152 for
   `Potato___healthy`) — worse than typically assumed, see
   `docs/03_preprocessing_eda.md` and the fairness analysis in

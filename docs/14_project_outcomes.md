@@ -8,7 +8,7 @@ Workflow" and "Final Submission".
 ## In one paragraph
 
 Two CNNs classify crop leaves in the Kaggle PlantVillage copy (15 classes,
-20,637 images). Grad-CAM, SHAP and LIME explain them. A web frontend with a
+20,638 images). Grad-CAM, SHAP and LIME explain them. A web frontend with a
 FastAPI backend runs the models and shows the three explanations for an
 uploaded leaf. After the instructor's feedback, the project also tried to link
 the three kinds of explanation with a Siamese encoder trained with SupCon. The
@@ -21,7 +21,7 @@ IEEE paper, the demo video and the literature survey are not done.
 | # | Step in the brief | Status | Evidence |
 |---|---|---|---|
 | 1 | Literature survey (10+ papers) | **Not done.** Doc 01 names four well-known papers from memory; none was read for this project and there is no table of 10+ papers | `01_problem_statement.md` |
-| 2 | Dataset | Done. 15 classes, 20,637 images (not the 38 classes first assumed) | `02_dataset.md` |
+| 2 | Dataset | Done. 15 classes, 20,638 images (not the 38 classes first assumed) | `02_dataset.md` |
 | 3 | Preprocessing and EDA | Done. 224×224, ImageNet normalisation, light augmentation; class counts, imbalance (21 times), sample grid | `03_preprocessing_eda.md`, `outputs/eda/` |
 | 4 | Baseline model | Done. MobileNetV2 and ResNet50, linear head only, 3 epochs. Test accuracy 0.918 and 0.889 | `04_baseline_models.md`, RUN_LOG |
 | 5 | Explainability | Done. Grad-CAM, SHAP, LIME. A SHAP bug (wrong maps with shap 0.49) was found and fixed. The "any new method" part is the linking encoder, below | `05_explainability_methods.md` |
