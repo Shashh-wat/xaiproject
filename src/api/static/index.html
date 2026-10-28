@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crop Disease XAI</title>
+<style>
+  :root {
+    --bg: #f6f8f5; --panel: #ffffff; --ink: #1d2a1f; --muted: #5d6b5f;
+    --line: #dfe5dc; --accent: #2f6f3e; --accent-ink: #ffffff;
+    --warn: #b4531f; --bar: #cfe3d1; --bar-fill: #2f6f3e;
+    --c1: #2f6f3e; --c2: #b4531f; --c3: #2b5f9e; --c4: #8a6d1d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121712; --panel: #1a211b; --ink: #e6ede6; --muted: #98a79a;
+      --line: #2b352c; --accent: #6fbf80; --accent-ink: #0f1a11;
+      --warn: #e58a55; --bar: #2b352c; --bar-fill: #6fbf80;
+      --c1: #6fbf80; --c2: #e58a55; --c3: #7fb0ea; --c4: #d9b84f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding: 18px 28px 0; display: flex; align-items: baseline;
+           gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 20px; margin: 0; }
+  .status { font-size: 13px; color: var(--muted); }
+  .status b { color: var(--ink); font-weight: 600; }
+  nav { display: flex; gap: 4px; padding: 14px 28px 0; border-bottom: 1px solid var(--line); }
+  nav button { background: none; border: 0; padding: 9px 14px; font: inherit;
+               color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
+  nav button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  main { padding: 24px 28px 60px; max-width: 1100px; }
+  section { display: none; } section.on { display: block; }
+  .panel { background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: 18px; margin-bottom: 18px; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  label { font-size: 13px; color: var(--muted); }
+  select, input[type=file] { font: inherit; color: var(--ink); background: var(--panel);
+           border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
+  button.go { background: var(--accent); color: var(--accent-ink); border: 0;
+              border-radius: 6px; padding: 9px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+  button.go:disabled { opacity: .5; cursor: wait; }
+  .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  figure { margin: 0; } figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  figcaption b { color: var(--ink); }
+  h2 { font-size: 16px; margin: 0 0 10px; } h3 { font-size: 14px; margin: 16px 0 6px; }
+  .pred { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+  .pred .name { min-width: 260px; } .pred .pct { width: 56px; text-align: right; color: var(--muted); }
+  .bar { flex: 1; height: 8px; background: var(--bar); border-radius: 4px; overflow: hidden; min-width: 80px; }
+  .bar i { display: block; height: 100%; background: var(--bar-fill); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .err { color: var(--warn); } .muted { color: var(--muted); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .chart svg { width: 100%; height: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  .legend { display: flex; gap: 14px; font-size: 13px; color: var(--muted); margin: 6px 0 12px; }
+  .legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; }
+  ul.plain { margin: 6px 0 0; padding-left: 18px; }
+  code { background: var(--bar); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Crop Disease XAI</h1>
+  <span class="status" id="status">Connecting to the API...</span>
+</header>
+<nav id="tabs">
+  <button data-tab="explain" class="on">Explain</button>
+  <button data-tab="compare">Compare models</button>
+  <button data-tab="results">Results</button>
+  <button data-tab="about">How it works</button>
+</nav>
+<main>
+
+<section id="tab-explain" class="on">
+  <div class="panel">
+    <div class="row">
+      <div><label>Leaf image<br><input type="file" id="ex-file" accept="image/jpeg,image/png"></label></div>
+      <div><label>Model<br><select id="ex-model"></select></label></div>
+      <div style="align-self:end"><button class="go" id="ex-run">Explain</button></div>
+    </div>
+    <p class="hint">Grad-CAM shows first. SHAP and LIME run on the CPU and take about a minute. When they finish, the page shows how closely the three explanations match.</p>
+  </div>
+  <div id="ex-out"></div>
+</section>
+
+<section id="tab-compare">
+  <div class="panel">
+    <div class="row">
+      <div><label>Leaf image<br><input type="file" id="cp-file" accept="image/jpeg,image/png"></label></div>
+      <div style="align-self:end"><button class="go" id="cp-run">Compare MobileNetV2 and ResNet50</button></div>
+    </div>
+    <p class="hint">Runs Grad-CAM on both models and reports the overlap (IoU) of the top 25% of each heatmap.</p>
+  </div>
+  <div id="cp-out"></div>
+</section>
+
+<section id="tab-results"><div id="rs-out" class="muted">Loading...</div></section>
+
+<section id="tab-about">
+  <div class="panel">
+    <h2>What this page does</h2>
+    <p>A CNN classifies a crop leaf. Three methods explain the prediction: Grad-CAM, SHAP and LIME. Each draws a different kind of map. To compare them, each map is reduced to a 64x64 picture of the evidence for the predicted class, and two maps are compared with Pearson correlation.</p>
+    <p>The <b>Explain</b> tab does this for your image and shows how the result compares with the typical values for the same image and for different images. The project also trains a small Siamese encoder with supervised contrastive loss (SupCon) to link the maps. The <b>Results</b> tab shows how it did on images it was not trained on: it did not beat plain correlation.</p>
+    <h3>Files</h3>
+    <ul class="plain">
+      <li><code>docs/12_linking_xai_methods.md</code> - the idea and what the results show</li>
+      <li><code>docs/13_correlation_model_spec.md</code> - the technical specification</li>
+      <li><code>docs/14_project_outcomes.md</code> - what was set out and what was done</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const MODEL_LABEL = { mobilenet_v2: "MobileNetV2", resnet50: "ResNet50" };
+
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) n.append(k);
+  return n;
+}
+const esc = t => String(t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const pct = x => (x * 100).toFixed(1) + "%";
+const f2 = x => (x == null ? "-" : x.toFixed(2));
+const png = b64 => "data:image/png;base64," + b64;
+
+function figure(src, caption) {
+  const cap = el("figcaption"); cap.innerHTML = caption;
+  return el("figure", {}, el("img", { src }), cap);
+}
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    let msg = r.statusText;
+    try { msg = (await r.json()).detail || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  return r.json();
+}
+function upload(file) { const fd = new FormData(); fd.append("file", file); return { method: "POST", body: fd }; }
+
+// ---- tabs ----
+$("#tabs").addEventListener("click", e => {
+  const t = e.target.dataset.tab; if (!t) return;
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b === e.target));
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === "tab-" + t));
+  if (t === "results") loadResults();
+});
+
+// ---- status + model list ----
+let models = {};
+async function init() {
+  try {
+    models = await api("/models");
+    const sel = $("#ex-model");
+    for (const [k, v] of Object.entries(models)) {
+      if (v.checkpoint_ready) sel.append(el("option", { value: k, text: v.label }));
+    }
+    const ready = Object.entries(models).filter(([, v]) => v.checkpoint_ready).map(([, v]) => v.label);
+    const enc = Object.entries(models).filter(([, v]) => v.encoder_ready).map(([, v]) => v.label);
+    $("#status").innerHTML = "Models: <b>" + (ready.join(", ") || "none") + "</b> &middot; Encoder: <b>" + (enc.join(", ") || "none") + "</b>";
+  } catch (e) { $("#status").textContent = "API not reachable: " + e.message; }
+}
+
+// ---- Explain ----
+$("#ex-run").addEventListener("click", async () => {
+  const file = $("#ex-file").files[0], model = $("#ex-model").value;
+  const out = $("#ex-out"); out.replaceChildren();
+  if (!file) { out.append(el("p", { class: "err", text: "Choose an image first." })); return; }
+  const btn = $("#ex-run"); btn.disabled = true;
+  try {
+    const status = el("p", { class: "muted", text: "Running Grad-CAM..." }); out.append(status);
+    const g = await api("/explain/gradcam?model=" + model, upload(file));
+    const panel = el("div", { class: "panel" });
+    panel.append(el("h2", { text: "Prediction" }));
+    for (const p of g.predictions) {
+      panel.append(el("div", { class: "pred" },
+        el("span", { class: "name", text: p.label }),
+        el("span", { class: "bar" }, el("i", { style: "width:" + (p.confidence * 100) + "%" })),
+        el("span", { class: "pct", text: pct(p.confidence) })));
+    }
+    const grid = el("div", { class: "grid4", style: "margin-top:14px" });
+    grid.append(figure(URL.createObjectURL(file), "<b>Uploaded image</b>"));
+    grid.append(figure(png(g.heatmap_overlay_png_base64), "<b>Grad-CAM</b> (" + MODEL_LABEL[model] + ")"));
+    panel.append(grid);
+    out.replaceChildren(panel);
+
+    const wait = el("p", { class: "muted", text: "Running SHAP and LIME (about a minute)..." }); out.append(wait);
+    const c = await api("/correlate?model=" + model, upload(file));
+    wait.remove();
+    out.append(renderCorrelation(c, file));
+  } catch (e) {
+    out.append(el("p", { class: "err", text: "Error: " + e.message }));
+  } finally { btn.disabled = false; }
+});
+
+function renderCorrelation(c, file) {
+  const wrap = el("div", { class: "panel" });
+  wrap.append(el("h2", { text: "Three explanations of the same prediction" }));
+  const grid = el("div", { class: "grid4" });
+  grid.append(figure(png(c.overlays_png_base64.gradcam), "<b>Grad-CAM</b>"));
+  grid.append(figure(png(c.overlays_png_base64.shap), "<b>SHAP</b> (evidence for the predicted class)"));
+  grid.append(figure(png(c.overlays_png_base64.lime), "<b>LIME</b> (superpixels that support the class)"));
+  wrap.append(grid);
+
+  wrap.append(el("h3", { text: "How well the maps match, for this image" }));
+  const t = el("table");
+  t.append(el("tr", {}, el("th", { text: "Pair" }), el("th", { class: "num", text: "Pearson correlation" }),
+    el("th", { class: "num", text: c.reference ? "Typical: same image / other images" : "" })));
+  for (const [pair, v] of Object.entries(c.pearson)) {
+    const ref = c.reference && c.reference.pearson[pair];
+    t.append(el("tr", {}, el("td", { text: pair.replace("-", " and ") }),
+      el("td", { class: "num", text: f2(v) }),
+      el("td", { class: "num muted", text: ref ? f2(ref.same_image) + " / " + f2(ref.other_image) : "" })));
+  }
+  wrap.append(t);
+  wrap.append(el("p", { class: "hint", text:
+    "Pearson correlation of the two 64x64 maps: 1 means the same pattern, 0 means unrelated. " +
+    (c.reference ? "'Typical' is the average over " + c.reference.n_images + " cached test images: a pair of maps from the same image against maps from different images. A value well above the second number means the two methods point at the same places. " : "") +
+    "The maps are drawn with the colour scale stretched so faint maps show; the numbers use the maps as they are." }));
+
+  if (c.nearest && Object.keys(c.nearest).length) {
+    wrap.append(el("h3", { text: "Closest cached maps from other images, found from this image's Grad-CAM map" }));
+    for (const [k, list] of Object.entries(c.nearest)) {
+      const target = k.split("->")[1].toUpperCase();
+      const tb = el("table");
+      tb.append(el("tr", {}, el("th", { text: target + " map of image" }), el("th", { text: "Predicted class there" }), el("th", { class: "num", text: "Pearson" })));
+      for (const n of list) {
+        tb.append(el("tr", {}, el("td", { class: "muted", text: n.image }),
+          el("td", { text: n.predicted_class + (n.predicted_class === c.prediction ? " (same as here)" : "") }),
+          el("td", { class: "num", text: f2(n.similarity) })));
+      }
+      wrap.append(tb);
+    }
+  }
+  return wrap;
+}
+
+// ---- Compare ----
+$("#cp-run").addEventListener("click", async () => {
+  const file = $("#cp-file").files[0], out = $("#cp-out"); out.replaceChildren();
+  if (!file) { out.append(el("p", { class: "err", text: "Choose an image first." })); return; }
+  const btn = $("#cp-run"); btn.disabled = true;
+  try {
+    const r = await api("/compare", upload(file));
+    const panel = el("div", { class: "panel" });
+    const grid = el("div", { class: "grid4" });
+    grid.append(figure(URL.createObjectURL(file), "<b>Uploaded image</b>"));
+    grid.append(figure(png(r.mobilenet_v2_overlay_png_base64), "<b>MobileNetV2</b>: " + esc(r.mobilenet_v2_prediction)));
+    grid.append(figure(png(r.resnet50_overlay_png_base64), "<b>ResNet50</b>: " + esc(r.resnet50_prediction)));
+    panel.append(grid);
+    panel.append(el("p", {}, "Overlap of the top 25% of both heatmaps (IoU): ", el("b", { text: f2(r.iou) })));
+    if (r.mobilenet_v2_prediction !== r.resnet50_prediction)
+      panel.append(el("p", { class: "err", text: "The two models predict different classes." }));
+    out.append(panel);
+  } catch (e) { out.append(el("p", { class: "err", text: "Error: " + e.message })); }
+  finally { btn.disabled = false; }
+});
+
+// ---- Results ----
+let resultsLoaded = false;
+async function loadResults() {
+  if (resultsLoaded) return;
+  const out = $("#rs-out");
+  try {
+    const r = await api("/results"); resultsLoaded = true; out.replaceChildren();
+
+    const p1 = el("div", { class: "panel" }); p1.append(el("h2", { text: "Classification (test set)" }));
+    const t = el("table");
+    t.append(el("tr", {}, ...["Model", "Epochs", "Best val accuracy", "Test accuracy", "Test macro-F1"].map((h, i) => el("th", { class: i ? "num" : "", text: h }))));
+    for (const [m, v] of Object.entries(r.classification)) {
+      t.append(el("tr", {}, el("td", { text: MODEL_LABEL[m] }), el("td", { class: "num", text: v.epochs ?? "-" }),
+        el("td", { class: "num", text: v.best_val_accuracy != null ? pct(v.best_val_accuracy) : "-" }),
+        el("td", { class: "num", text: pct(v.test_accuracy) }), el("td", { class: "num", text: v.test_macro_f1.toFixed(3) })));
+    }
+    p1.append(t);
+    if (r.comparison) p1.append(el("p", { class: "hint", text:
+      "Grad-CAM overlap between the two models (top 25% of each heatmap): mean IoU " + r.comparison.mean_iou.toFixed(3) +
+      ", median " + r.comparison.median_iou.toFixed(3) + ", over " + r.comparison.n_images + " test images." }));
+    out.append(p1);
+
+    out.append(correlationPanel(r.correlation, r.cross_validation));
+    out.append(robustnessPanel(r.robustness));
+  } catch (e) { out.replaceChildren(el("p", { class: "err", text: "Error: " + e.message })); }
+}
+
+function correlationPanel(corr, cv) {
+  const p = el("div", { class: "panel" });
+  p.append(el("h2", { text: "Linking the three methods on images not used for training" }));
+  const names = Object.keys(cv || {});
+  if (!names.length) { p.append(el("p", { class: "muted", text: "No cross-validation results yet. See docs/11_explanation_correlation.md." })); return p; }
+  p.append(el("p", { class: "hint", style: "margin-top:0", text:
+    "Take one method's map for an image. Rank the other methods' maps for the held-out images by similarity. How often is the top match the same image, and how often an image with the same predicted class? " +
+    "Each image is held out once (5 folds). Values are the mean over folds, with the spread (standard deviation) in brackets. Chance is what random ranking gives." }));
+  const ms = (c, k) => pct(c[k].mean) + " (" + (c[k].std * 100).toFixed(1) + ")";
+  for (const m of names) {
+    const c = cv[m];
+    p.append(el("h3", { text: MODEL_LABEL[m] + " - " + c.n_folds + "-fold, all images held out once" }));
+    const t = el("table");
+    t.append(el("tr", {}, ...["Embedding", "Top-1 same image", "Top-3 same image", "Top-1 same class"].map((h, i) => el("th", { class: i ? "num" : "", text: h }))));
+    const row = (label, x, cls) => t.append(el("tr", { class: cls || "" }, el("td", { text: label }),
+      el("td", { class: "num", text: ms(x, "top1_same_image") }), el("td", { class: "num", text: ms(x, "top3_same_image") }), el("td", { class: "num", text: ms(x, "top1_same_class") })));
+    for (const [name, x] of Object.entries(c.configs)) row("Trained encoder, " + name.replace("label=", "label ").replace(",epochs=", ", epochs "), x);
+    row("Untrained encoder", c.untrained_encoder);
+    row("Raw maps (Pearson correlation)", c.raw_maps);
+    const first = Object.values(c.configs)[0];
+    t.append(el("tr", { class: "muted" }, el("td", { text: "Chance" }),
+      el("td", { class: "num", text: pct(first.chance_top1_same_image.mean) }),
+      el("td", { class: "num", text: pct(first.chance_top3_same_image.mean) }),
+      el("td", { class: "num", text: pct(first.chance_top1_same_class.mean) })));
+    p.append(t);
+    const ra = corr[m] && corr[m].raw_all_images;
+    if (ra) {
+      p.append(el("h3", { text: "Raw map correlation, by pair, all " + ra.n_images + " cached images (no training)" }));
+      const tp = el("table");
+      tp.append(el("tr", {}, ...["Pair", "Same image", "Other images", "Top-1 same image (chance)"].map((h, i) => el("th", { class: i ? "num" : "", text: h }))));
+      const seen = new Set();
+      for (const [k, v] of Object.entries(ra.pairs)) {
+        const key = k.split("->").sort().join("-"); if (seen.has(key)) continue; seen.add(key);
+        tp.append(el("tr", {}, el("td", { text: k.replace("->", " to ") }), el("td", { class: "num", text: f2(v.mean_sim_same_image) }),
+          el("td", { class: "num", text: f2(v.mean_sim_other_image) }),
+          el("td", { class: "num", text: pct(v.top1_same_image) + " (" + pct(v.chance_top1_same_image) + ")" })));
+      }
+      p.append(tp);
+    }
+  }
+  return p;
+}
+
+const SERIES_COLORS = { mobilenet_v2: "var(--c1)", resnet50: "var(--c2)" };
+function robustnessPanel(rob) {
+  const p = el("div", { class: "panel" });
+  p.append(el("h2", { text: "Robustness to image changes" }));
+  const names = Object.keys(rob);
+  if (!names.length) { p.append(el("p", { class: "muted", text: "No robustness results yet." })); return p; }
+  const leg = el("div", { class: "legend" });
+  for (const m of names) leg.append(el("span", {}, el("i", { style: "background:" + SERIES_COLORS[m] }), MODEL_LABEL[m]));
+  p.append(leg);
+  const kinds = [...new Set(rob[names[0]].map(r => r.perturbation))];
+  for (const [key, title] of [["flip_rate", "Share of predictions that change"], ["mean_iou", "Grad-CAM overlap (IoU) with the unchanged image"]]) {
+    p.append(el("h3", { text: title }));
+    const charts = el("div", { class: "charts" });
+    for (const kind of kinds) charts.append(miniChart(kind, key, names.map(m => ({ m, rows: rob[m].filter(r => r.perturbation === kind).sort((a, b) => a.severity - b.severity) }))));
+    p.append(charts);
+  }
+  return p;
+}
+function miniChart(kind, key, series) {
+  const W = 260, H = 170, L = 34, R = 10, T = 26, B = 28;
+  const xs = series[0].rows.map(r => r.severity), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const X = v => L + (v - x0) / (x1 - x0 || 1) * (W - L - R), Y = v => T + (1 - v) * (H - T - B);
+  let s = `<text x="${L}" y="12" font-size="11" fill="currentColor">${esc(kind)}</text>`;
+  for (const g of [0, .5, 1]) s += `<line x1="${L}" x2="${W - R}" y1="${Y(g)}" y2="${Y(g)}" stroke="var(--line)"/><text x="${L - 5}" y="${Y(g) + 4}" font-size="10" text-anchor="end" fill="var(--muted)">${g}</text>`;
+  for (const v of [x0, x1]) s += `<text x="${X(v)}" y="${H - 10}" font-size="10" text-anchor="middle" fill="var(--muted)">${v}</text>`;
+  for (const { m, rows } of series) {
+    const pts = rows.map(r => `${X(r.severity)},${Y(r[key])}`).join(" ");
+    s += `<polyline points="${pts}" fill="none" stroke="${SERIES_COLORS[m]}" stroke-width="2"/>`;
+    for (const r of rows) s += `<circle cx="${X(r.severity)}" cy="${Y(r[key])}" r="2.5" fill="${SERIES_COLORS[m]}"/>`;
+  }
+  const d = el("div", { class: "chart" }); d.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(kind)}">${s}</svg>`;
+  return d;
+}
+
+init();
+</script>
+</body>
+</html>
