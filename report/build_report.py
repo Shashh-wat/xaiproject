@@ -424,7 +424,8 @@ td.r { white-space: nowrap; }
 html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Explainable Crop Disease Detection</title><style>{CSS}</style></head><body>
 <div class="cols">
 <div class="title">Explainable Crop Disease Detection with CNNs: <span style="white-space:nowrap">Grad-CAM</span>, SHAP and LIME, and a Test of Whether Their Explanations Can Be Linked</div>
-<div class="byline">BCSE418L Explainable Artificial Intelligence, Digital Assignment</div>
+<div class="byline" style="font-size:12pt">Shashwat Singh (23bce1517)</div>
+<div class="byline" style="font-size:10pt;margin-bottom:0">BCSE418L Explainable Artificial Intelligence, Digital Assignment</div>
 <div class="byline2">Source code: github.com/Shashh-wat/xaiproject</div>
 {FIG1_HTML}
 <div class="abs"><i>Abstract</i>—{ABSTRACT}</div>
