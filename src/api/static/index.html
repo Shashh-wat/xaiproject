@@ -74,6 +74,8 @@
   <button data-tab="explain" class="on">Explain</button>
   <button data-tab="compare">Compare models</button>
   <button data-tab="results">Results</button>
+  <button data-tab="arch">System architecture</button>
+  <button data-tab="model">Model architecture</button>
   <button data-tab="about">How it works</button>
 </nav>
 <main>
@@ -102,6 +104,253 @@
 </section>
 
 <section id="tab-results"><div id="rs-out" class="muted">Loading...</div></section>
+
+<section id="tab-arch">
+  <div class="panel">
+    <h2>System architecture</h2>
+    <div class="chart" style="max-width:960px"><svg id="arch-svg" viewBox="0 0 960 590" role="img" aria-label="System architecture" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    #arch-svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+    #arch-svg .t { font-size: 14px; font-weight: 600; }
+    #arch-svg .s { font-size: 11.5px; fill: var(--muted); }
+    #arch-svg .lane { fill: var(--bg); stroke: var(--line); }
+    #arch-svg .lanet { font-size: 12px; font-weight: 700; letter-spacing: .06em; fill: var(--muted); }
+    #arch-svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; }
+    #arch-svg .hot { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+    #arch-svg .warm { fill: var(--panel); stroke: var(--warn); stroke-width: 2; }
+    #arch-svg .ln { fill: none; stroke: var(--muted); stroke-width: 1.6; }
+    #arch-svg .dash { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
+    #arch-svg .lab { font-size: 11px; fill: var(--muted); }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" style="fill: var(--muted)"/>
+    </marker>
+  </defs>
+
+  <!-- live lane -->
+  <rect class="lane" x="10" y="5" width="940" height="255" rx="10"/>
+  <text class="lanet" x="24" y="26">LIVE: ONE UPLOADED IMAGE</text>
+
+  <rect class="box" x="24" y="75" width="190" height="110" rx="8"/>
+  <text class="t" x="119" y="105" text-anchor="middle">Browser</text>
+  <text class="s" x="119" y="128" text-anchor="middle">src/api/static/index.html</text>
+  <text class="s" x="119" y="146" text-anchor="middle">Explain · Compare · Results</text>
+
+  <rect class="hot" x="262" y="75" width="190" height="110" rx="8"/>
+  <text class="t" x="357" y="105" text-anchor="middle">FastAPI backend</text>
+  <text class="s" x="357" y="128" text-anchor="middle">src/api/main.py</text>
+  <text class="s" x="357" y="146" text-anchor="middle">one request at a time</text>
+
+  <rect class="box" x="520" y="62" width="200" height="64" rx="8"/>
+  <text class="t" x="620" y="90" text-anchor="middle">CNN classifier</text>
+  <text class="s" x="620" y="109" text-anchor="middle">MobileNetV2 or ResNet50</text>
+
+  <rect class="box" x="520" y="148" width="200" height="64" rx="8"/>
+  <text class="t" x="620" y="176" text-anchor="middle">Explainers</text>
+  <text class="s" x="620" y="195" text-anchor="middle">Grad-CAM · SHAP · LIME</text>
+
+  <rect class="warm" x="758" y="75" width="182" height="110" rx="8"/>
+  <text class="t" x="849" y="103" text-anchor="middle">Maps and correlation</text>
+  <text class="s" x="849" y="125" text-anchor="middle">src/correlate</text>
+  <text class="s" x="849" y="143" text-anchor="middle">64×64 map per method</text>
+  <text class="s" x="849" y="161" text-anchor="middle">Pearson correlation</text>
+
+  <path class="ln" d="M214 130 H260" marker-end="url(#ah)"/>
+  <text class="lab" x="237" y="121" text-anchor="middle">image</text>
+  <path class="ln" d="M452 112 L518 96" marker-end="url(#ah)"/>
+  <path class="ln" d="M620 126 V146" marker-end="url(#ah)"/>
+  <path class="ln" d="M720 180 L756 150" marker-end="url(#ah)"/>
+  <!-- return path -->
+  <path class="ln" d="M849 73 V46 H357 V73" marker-end="url(#ah)"/>
+  <text class="lab" x="603" y="40" text-anchor="middle">overlays, correlation, nearest maps, predictions</text>
+
+  <!-- offline lane -->
+  <rect class="lane" x="10" y="275" width="940" height="305" rx="10"/>
+  <text class="lanet" x="24" y="297">OFFLINE: RUN ONCE FROM THE COMMAND LINE</text>
+
+  <rect class="box" x="25" y="318" width="200" height="92" rx="8"/>
+  <text class="t" x="125" y="346" text-anchor="middle">Data</text>
+  <text class="s" x="125" y="368" text-anchor="middle">src/data</text>
+  <text class="s" x="125" y="386" text-anchor="middle">download, split, EDA</text>
+
+  <rect class="box" x="255" y="318" width="200" height="92" rx="8"/>
+  <text class="t" x="355" y="346" text-anchor="middle">Train</text>
+  <text class="s" x="355" y="368" text-anchor="middle">src/train.py</text>
+  <text class="s" x="355" y="386" text-anchor="middle">MobileNetV2, ResNet50</text>
+
+  <rect class="box" x="485" y="318" width="200" height="92" rx="8"/>
+  <text class="t" x="585" y="346" text-anchor="middle">Explain and test</text>
+  <text class="s" x="585" y="368" text-anchor="middle">src/explain, src/robustness</text>
+  <text class="s" x="585" y="386" text-anchor="middle">IoU between models, image changes</text>
+
+  <rect class="warm" x="715" y="318" width="210" height="92" rx="8"/>
+  <text class="t" x="820" y="346" text-anchor="middle">Link the maps</text>
+  <text class="s" x="820" y="368" text-anchor="middle">src/correlate</text>
+  <text class="s" x="820" y="386" text-anchor="middle">cache maps, encoder, cross-validate</text>
+
+  <path class="ln" d="M225 364 H253" marker-end="url(#ah)"/>
+  <path class="ln" d="M455 364 H483" marker-end="url(#ah)"/>
+  <path class="ln" d="M685 364 H713" marker-end="url(#ah)"/>
+
+  <rect class="hot" x="25" y="452" width="900" height="104" rx="8"/>
+  <text class="t" x="475" y="480" text-anchor="middle">Saved outputs (outputs/, not in git)</text>
+  <text class="s" x="475" y="506" text-anchor="middle">model files · evaluation reports · IoU and robustness tables</text>
+  <text class="s" x="475" y="526" text-anchor="middle">cached maps · trained encoder · analysis and cross-validation JSON</text>
+
+  <path class="ln" d="M125 410 V450" marker-end="url(#ah)"/>
+  <path class="ln" d="M355 410 V450" marker-end="url(#ah)"/>
+  <path class="ln" d="M585 410 V450" marker-end="url(#ah)"/>
+  <path class="ln" d="M820 410 V450" marker-end="url(#ah)"/>
+
+  <!-- live app reads saved outputs -->
+  <path class="dash" d="M470 452 V232 H357 V187" marker-end="url(#ah)"/>
+  <text class="lab" x="480" y="248">the app reads model files, cached maps, encoder and result tables</text>
+</svg></div>
+    <p class="hint">Top: what happens when you upload a leaf. The page sends the image to the FastAPI backend. The backend runs the CNN, then Grad-CAM, SHAP and LIME, turns each result into a 64×64 map, and returns the overlays and the correlation between the maps. Bottom: the steps run beforehand from the command line. They write the model files, tables and cached maps the app reads.</p>
+    <ul class="plain">
+      <li><code>src/api/main.py</code> serves this page and the API. Endpoints: <code>/predict</code>, <code>/explain/gradcam</code>, <code>/explain/shap</code>, <code>/explain/lime</code>, <code>/compare</code>, <code>/correlate</code>, <code>/results</code>, <code>/health</code>, <code>/models</code>.</li>
+      <li>The trained encoder (Siamese, SupCon) is in <code>src/correlate</code>. The Explain tab does not use it, because it did not beat plain correlation.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="tab-model">
+  <div class="panel">
+    <h2>Model architecture</h2>
+    <div class="chart" style="max-width:960px"><svg id="model-svg" viewBox="0 0 960 690" role="img" aria-label="Model architecture" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    #model-svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+    #model-svg .t { font-size: 13.5px; font-weight: 600; }
+    #model-svg .s { font-size: 11px; fill: var(--muted); }
+    #model-svg .lane { fill: var(--bg); stroke: var(--line); }
+    #model-svg .lanet { font-size: 12px; font-weight: 700; letter-spacing: .06em; fill: var(--muted); }
+    #model-svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; }
+    #model-svg .hot { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+    #model-svg .warm { fill: var(--panel); stroke: var(--warn); stroke-width: 2; }
+    #model-svg .ln { fill: none; stroke: var(--muted); stroke-width: 1.6; }
+    #model-svg .dash { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
+    #model-svg .lab { font-size: 11px; fill: var(--muted); }
+  </style>
+  <defs>
+    <marker id="mh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" style="fill: var(--muted)"/>
+    </marker>
+  </defs>
+
+  <!-- A: classifier -->
+  <rect class="lane" x="10" y="5" width="940" height="285" rx="10"/>
+  <text class="lanet" x="24" y="26">CLASSIFIER: ONE OF TWO BACKBONES (src/models/factory.py)</text>
+  <rect class="box" x="24" y="74" width="112" height="104" rx="8"/>
+  <text class="t" x="80.0" y="100" text-anchor="middle">Leaf image</text>
+  <text class="s" x="80.0" y="120" text-anchor="middle">224 × 224 × 3</text>
+  <text class="s" x="80.0" y="136" text-anchor="middle">ImageNet</text>
+  <text class="s" x="80.0" y="152" text-anchor="middle">mean and std</text>
+  <rect class="lane" x="160" y="42" width="430" height="204" rx="8" style="stroke-dasharray:4 3"/>
+  <text class="lab" x="175" y="62">Backbone: ImageNet weights, frozen (not trained)</text>
+  <rect class="hot" x="176" y="72" width="398" height="74" rx="8"/>
+  <text class="t" x="375.0" y="96" text-anchor="middle">MobileNetV2 features</text>
+  <text class="s" x="375.0" y="116" text-anchor="middle">inverted residual blocks, depthwise separable convolutions</text>
+  <text class="s" x="375.0" y="132" text-anchor="middle">output 1280 × 7 × 7 · 2,243,087 parameters in total</text>
+  <text class="lab" x="375" y="166" text-anchor="middle">or</text>
+  <rect class="hot" x="176" y="172" width="398" height="66" rx="8"/>
+  <text class="t" x="375.0" y="194" text-anchor="middle">ResNet50: conv1, layer1 to layer4</text>
+  <text class="s" x="375.0" y="214" text-anchor="middle">residual bottleneck blocks</text>
+  <text class="s" x="375.0" y="230" text-anchor="middle">output 2048 × 7 × 7 · 23,538,767 parameters in total</text>
+  <rect class="box" x="614" y="74" width="104" height="104" rx="8"/>
+  <text class="t" x="666.0" y="108" text-anchor="middle">Global</text>
+  <text class="s" x="666.0" y="128" text-anchor="middle">average pool</text>
+  <text class="s" x="666.0" y="144" text-anchor="middle">7 × 7 → 1 × 1</text>
+  <rect class="warm" x="740" y="74" width="112" height="104" rx="8"/>
+  <text class="t" x="796.0" y="108" text-anchor="middle">Linear layer</text>
+  <text class="s" x="796.0" y="128" text-anchor="middle">1280 → 15</text>
+  <text class="s" x="796.0" y="144" text-anchor="middle">or 2048 → 15</text>
+  <text class="s" x="796.0" y="160" text-anchor="middle">(trained)</text>
+  <rect class="box" x="874" y="74" width="62" height="104" rx="8"/>
+  <text class="t" x="905.0" y="108" text-anchor="middle">15</text>
+  <text class="s" x="905.0" y="128" text-anchor="middle">classes</text>
+  <text class="s" x="905.0" y="144" text-anchor="middle">softmax</text>
+  <path class="ln" d="M136 126 H158" marker-end="url(#mh)"/>
+  <path class="ln" d="M590 126 H612" marker-end="url(#mh)"/>
+  <path class="ln" d="M718 126 H738" marker-end="url(#mh)"/>
+  <path class="ln" d="M852 126 H872" marker-end="url(#mh)"/>
+  <text class="lab" x="614" y="206">Only the linear layer is trained:</text>
+  <text class="lab" x="614" y="222">19,215 (MobileNetV2) or 30,735 (ResNet50) parameters</text>
+  <text class="lab" x="614" y="238">class-weighted loss, Adam, 3 epochs</text>
+  <text class="lab" x="385" y="276">Grad-CAM reads the last block (features[-1] or layer4[-1])</text>
+
+  <!-- B: explainers -->
+  <rect class="lane" x="10" y="305" width="940" height="150" rx="10"/>
+  <text class="lanet" x="190" y="326">EXPLAINERS (src/explain), ALL FOR THE PREDICTED CLASS</text>
+  <rect class="box" x="24" y="342" width="296" height="68" rx="8"/>
+  <text class="t" x="172.0" y="364" text-anchor="middle">Grad-CAM</text>
+  <text class="s" x="172.0" y="384" text-anchor="middle">gradients at the last block</text>
+  <text class="s" x="172.0" y="400" text-anchor="middle">weight its activations, then ReLU</text>
+  <rect class="box" x="332" y="342" width="296" height="68" rx="8"/>
+  <text class="t" x="480.0" y="364" text-anchor="middle">SHAP (GradientExplainer)</text>
+  <text class="s" x="480.0" y="384" text-anchor="middle">30 background images, 50 samples, full model</text>
+  <text class="s" x="480.0" y="400" text-anchor="middle">values summed over the colour channels</text>
+  <rect class="box" x="640" y="342" width="296" height="68" rx="8"/>
+  <text class="t" x="788.0" y="364" text-anchor="middle">LIME</text>
+  <text class="s" x="788.0" y="384" text-anchor="middle">quickshift superpixels, 150 perturbed copies</text>
+  <text class="s" x="788.0" y="400" text-anchor="middle">linear fit gives a weight per superpixel</text>
+  <rect class="warm" x="24" y="424" width="912" height="24" rx="6"/>
+  <text class="s" x="480" y="440" text-anchor="middle">64 × 64 map per method: evidence for the predicted class, scaled to 0 to 1</text>
+  <path class="ln" d="M172 410 V422" marker-end="url(#mh)"/>
+  <path class="ln" d="M480 410 V422" marker-end="url(#mh)"/>
+  <path class="ln" d="M788 410 V422" marker-end="url(#mh)"/>
+  <path class="dash" d="M375 246 V280 H172 V340" marker-end="url(#mh)"/>
+
+  <!-- C: encoder -->
+  <rect class="lane" x="10" y="475" width="940" height="205" rx="10"/>
+  <text class="lanet" x="100" y="496">ENCODER: SIAMESE, SAME WEIGHTS FOR ALL THREE MAPS (src/correlate/encoder.py)</text>
+  <rect class="warm" x="24" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="83.0" y="540" text-anchor="middle">Map</text>
+  <text class="s" x="83.0" y="560" text-anchor="middle">1 × 64 × 64</text>
+  <path class="ln" d="M142 565 H154" marker-end="url(#mh)"/>
+  <rect class="box" x="156" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="215.0" y="540" text-anchor="middle">Conv 3 × 3</text>
+  <text class="s" x="215.0" y="560" text-anchor="middle">1 → 16</text>
+  <text class="s" x="215.0" y="576" text-anchor="middle">BatchNorm, ReLU</text>
+  <text class="s" x="215.0" y="592" text-anchor="middle">max pool</text>
+  <path class="ln" d="M274 565 H286" marker-end="url(#mh)"/>
+  <rect class="box" x="288" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="347.0" y="540" text-anchor="middle">Conv 3 × 3</text>
+  <text class="s" x="347.0" y="560" text-anchor="middle">16 → 32</text>
+  <text class="s" x="347.0" y="576" text-anchor="middle">BatchNorm, ReLU</text>
+  <text class="s" x="347.0" y="592" text-anchor="middle">max pool</text>
+  <path class="ln" d="M406 565 H418" marker-end="url(#mh)"/>
+  <rect class="box" x="420" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="479.0" y="540" text-anchor="middle">Conv 3 × 3</text>
+  <text class="s" x="479.0" y="560" text-anchor="middle">32 → 64</text>
+  <text class="s" x="479.0" y="576" text-anchor="middle">BatchNorm, ReLU</text>
+  <text class="s" x="479.0" y="592" text-anchor="middle">global avg pool</text>
+  <path class="ln" d="M538 565 H550" marker-end="url(#mh)"/>
+  <rect class="box" x="552" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="611.0" y="540" text-anchor="middle">Linear</text>
+  <text class="s" x="611.0" y="560" text-anchor="middle">64 → 64</text>
+  <text class="s" x="611.0" y="576" text-anchor="middle">ReLU</text>
+  <path class="ln" d="M670 565 H682" marker-end="url(#mh)"/>
+  <rect class="box" x="684" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="743.0" y="540" text-anchor="middle">Linear</text>
+  <text class="s" x="743.0" y="560" text-anchor="middle">64 → 64</text>
+  <path class="ln" d="M802 565 H814" marker-end="url(#mh)"/>
+  <rect class="warm" x="816" y="515" width="118" height="100" rx="8"/>
+  <text class="t" x="875.0" y="540" text-anchor="middle">L2 normalise</text>
+  <text class="s" x="875.0" y="560" text-anchor="middle">vector of 64</text>
+  <text class="s" x="875.0" y="576" text-anchor="middle">length 1</text>
+  <path class="dash" d="M83 448 V513" marker-end="url(#mh)"/>
+  <text class="lab" x="480" y="642" text-anchor="middle">31,840 parameters. Trained with SupCon loss (temperature 0.1): maps of the same predicted class are pulled together.</text>
+  <text class="lab" x="480" y="662" text-anchor="middle">On images it was not trained on, it did not beat plain correlation of the maps.</text>
+</svg></div>
+    <p class="hint">Top: the classifier. An image goes through one of two ImageNet backbones, which are frozen. A new linear layer, the only part trained, gives 15 class scores. Middle: the three explainers. Each makes a map for the predicted class, reduced to 64 × 64. Bottom: the small encoder that was trained to link the maps. The Explain tab does not use it.</p>
+    <ul class="plain">
+      <li>Both backbones end in a 7 × 7 grid of features. Grad-CAM uses that last block: <code>features[-1]</code> in MobileNetV2, <code>layer4[-1]</code> in ResNet50.</li>
+      <li>SHAP (GradientExplainer) uses gradients through the whole classifier. LIME only needs the class scores for perturbed copies of the image, so it treats the classifier as a black box.</li>
+      <li>Sizes are read from the code: <code>src/models/factory.py</code> and <code>src/correlate/encoder.py</code>.</li>
+    </ul>
+  </div>
+</section>
 
 <section id="tab-about">
   <div class="panel">

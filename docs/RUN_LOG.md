@@ -81,7 +81,7 @@ one model only. Figure: `figures/sanity_mobilenet_v2.png`.
 
 60 test images of MobileNetV2 (mean 93% predicted correctly, 13 predicted
 classes). 180 maps. Cached with `build_explanation_dataset --n_images 60
---lime_samples 150` on CPU, 18 min 25 s. Each map is the evidence for the
+--lime_samples 150` on CPU, about 18 minutes. Each map is the evidence for the
 predicted class, 64×64 (spec: `13_correlation_model_spec.md`).
 
 Raw correlation of the maps, all 60 images, no training (source:
@@ -113,7 +113,7 @@ Before the SHAP fix, the same experiment on wrong SHAP maps gave similar
 chance-level results (top-1 same image 0.061 to 0.081 for the trained
 encoders) and a training loss that fell from 4.35 to 2.61 while the held-out
 loss rose from 3.56 to 4.97: the encoder memorised the 48 training images.
-After the fix the training loss moves from 4.35 only to 4.02 in 100 epochs.
+After the fix the training loss moves from 4.72 only to 4.02 in 100 epochs.
 Those earlier numbers are not used anywhere else.
 
 ## Problems found and fixed during the run
